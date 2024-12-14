@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom para Professores</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        header {
+            background-color: #161b22;
+            padding: 10px 20px;
+        }
+        nav h1 {
+            margin: 0;
+            color: #58a6ff;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            gap: 15px;
+        }
+        nav ul li a {
+            color: #c9d1d9;
+            text-decoration: none;
+        }
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+        main {
+            padding: 20px;
+        }
+        section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #161b22;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #238636;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2ea043;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #161b22;
+            color: #8b949e;
+        }
+        .hidden {
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th, table td {
+            border: 1px solid #c9d1d9;
+            padding: 8px;
+            text-align: left;
+        }
+        table th {
+            background-color: #238636;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Classroom para Professores</h1>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Tela de login -->
+        <section id="login" class="hidden">
+            <h2>Login</h2>
+            <form id="loginForm" onsubmit="login(event)">
+                <label for="loginEmail">Email:</label>
+                <input type="email" id="loginEmail" required>
+                <label for="loginSenha">Senha:</label>
+                <input type="password" id="loginSenha" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <p>Não tem uma conta? <button onclick="mostrarCadastro()">Cadastrar</button></p>
+        </section>
+
+        <!-- Tela de cadastro -->
+        <section id="cadastro" class="hidden">
+            <h2>Cadastro</h2>
+            <form id="cadastroForm" onsubmit="cadastrar(event)">
+                <label for="cadastroEmail">Email:</label>
+                <input type="email" id="cadastroEmail" required>
+                <label for="cadastroSenha">Senha:</label>
+                <input type="password" id="cadastroSenha" required>
+                <label for="tipoUsuario">Tipo de usuário:</label>
+                <select id="tipoUsuario">
+                    <option value="professor">Professor</option>
+                    <option value="aluno">Aluno</option>
+                </select>
+                <button type="submit">Cadastrar</button>
+            </form>
+            <p>Já tem uma conta? <button onclick="mostrarLogin()">Entrar</button></p>
+        </section>
+
+        <!-- Dashboard -->
+        <section id="dashboard" class="hidden">
+            <h2>Bem-vindo(a), <span id="nomeUsuario"></span>!</h2>
+            <div id="opcoesProfessor" class="hidden">
+                <button onclick="mostrarCriarTurma()">Criar Nova Turma</button>
+                <button onclick="criarAtividade()">Criar Nova Atividade</button>
+
+                <!-- Formulário de criar turma -->
+                <div id="criarTurmaForm" class="hidden">
+                    <h3>Criar Nova Turma</h3>
+                    <label for="nomeTurma">Nome da Turma:</label>
+                    <input type="text" id="nomeTurma">
+                    <button onclick="criarTurma()">Salvar Turma</button>
+                </div>
+            </div>
+            <div id="opcoesAluno" class="hidden">
+                <h3>Atividades</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Prazo</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaAtividades">
+                        <!-- Lista de atividades será preenchida dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; <span id="ano"></span> Classroom para Professores. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        document.getElementById('ano').textContent = new Date().getFullYear();
+
+        const usuarios = [];
+        const atividades = [];
+        const turmas = [];
+        let usuarioLogado = null;
+
+        function mostrarLogin() {
+            document.getElementById('login').classList.remove('hidden');
+            document.getElementById('cadastro').classList.add('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+        }
+
+        function mostrarCadastro() {
+            document.getElementById('cadastro').classList.remove('hidden');
+            document.getElementById('login').classList.add('hidden');
+        }
+
+        function cadastrar(event) {
+            event.preventDefault();
+            const email = document.getElementById('cadastroEmail').value;
+            const senha = document.getElementById('cadastroSenha').value;
+            const tipo = document.getElementById('tipoUsuario').value;
+
+            if (usuarios.some(u => u.email === email)) {
+                alert('Usuário já cadastrado!');
+                return;
+            }
+
+            usuarios.push({ email, senha, tipo });
+            alert('Cadastro realizado com sucesso!');
+            mostrarLogin();
+        }
+
+        function login(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            const usuario = usuarios.find(u => u.email === email && u.senha === senha);
+            if (!usuario) {
+                alert('Usuário ou senha inválidos!');
+                return;
+            }
+
+            usuarioLogado = usuario;
+            iniciarDashboard();
+        }
+
+        function iniciarDashboard() {
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('cadastro').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+
+            document.getElementById('nomeUsuario').textContent = usuarioLogado.email;
+
+            if (usuarioLogado.tipo === 'professor') {
+                document.getElementById('opcoesProfessor').classList.remove('hidden');
+            } else {
+                document.getElementById('opcoesAluno').classList.remove('hidden');
+                carregarAtividades();
+            }
+        }
+
+        function mostrarCriarTurma() {
+            document.getElementById('criarTurmaForm').classList.toggle('hidden');
+        }
+
+        function criarTurma() {
+            const nomeTurma = document.getElementById('nomeTurma').value;
+            if (!nomeTurma) {
+                alert('Digite um nome para a turma!');
+                return;
+            }
+
+            turmas.push({ nome: nomeTurma, alunos: [] });
+            alert(`Turma "${nomeTurma}" criada com sucesso!`);
+            document.getElementById('nomeTurma').value = '';
+            document.getElementById('criarTurmaForm').classList.add('hidden');
+        }
+
+        function criarAtividade() {
+            const titulo = prompt('Digite o título da atividade:');
+            const prazo = prompt('Digite o prazo da atividade (formato: DD/MM/AAAA):');
+
+            if (!titulo || !prazo) {
+                alert('Título e prazo são obrigatórios!');
+                return;
+            }
+
+            atividades.push({ titulo, prazo, status: 'Pendente' });
+            alert('Atividade criada!');
+        }
+
+        function carregarAtividades() {
+            const lista = document.getElementById('listaAtividades');
+            lista.innerHTML = '';
+            atividades.forEach(a => {
+                const row = document.createElement('tr');
+
+                const tituloCell = document.createElement('td');
+                tituloCell.textContent = a.titulo;
+                row.appendChild(tituloCell);
+
+                const prazoCell = document.createElement('td');
+                prazoCell.textContent = a.prazo;
+                row.appendChild(prazoCell);
+
+                const statusCell = document.createElement('td');
+                statusCell.textContent = a.status;
+                row.appendChild(statusCell);
+
+                lista.appendChild(row);
+            });
+        }
+
+        // Inicialização
+        mostrarLogin();
+    </script>
+</body>
+</html>
